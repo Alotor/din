@@ -11,6 +11,7 @@ Currently the following languages are supported:
 - groovy (+ gradle)
 - julia
 - ocaml (+ opam)
+- R
 - scala (+ sbt)
 
 ## Usage
@@ -18,7 +19,7 @@ Currently the following languages are supported:
 If you want just to execute the default "language" entry point you'll need to execute
 
 ```
-din <language> 
+din <language>
 ```
 
 For example the following will open the Julia REPL
@@ -52,7 +53,7 @@ For example:
 din julia/bash
 ```
 
-This really will work for any command in the path. 
+This really will work for any command in the path.
 
 ```
 din <language>/<command>
