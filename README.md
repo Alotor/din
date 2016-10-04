@@ -38,7 +38,7 @@ This also works if you write it in the 'sheebang':
 println("HELLO WORLD")
 ```
 
-If, on the other hand, you don't want to execute a SHELL that contains in it's path the language binaries you can do:
+If, on the other hand, you want to execute a SHELL that contains in its path the language binaries you can do:
 
 ```
 din <language>/bash
