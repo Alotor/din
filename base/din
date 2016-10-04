@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+useradd --system \
+        --uid=$DIN_ENV_UID \
+        --home "/home/$DIN_ENV_USER" \
+        --shell /bin/bash \
+        --groups work \
+        "$DIN_ENV_USER"
+
+echo "$DIN_ENV_USER ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+
+cd "$DIN_ENV_PWD"
+
+# DEBUG
+# echo "DIN_ENV_USER=$DIN_ENV_USER"
+# echo "DIN_ENV_PWD=$DIN_ENV_PWD"
+# echo "DIN_ENV_UID=$DIN_ENV_UID"
+# echo "DIN_ENV_USER=$DIN_ENV_USER"
+# echo "DIN_COMMAND=$DIN_COMMAND"
+
+sudo -u $DIN_ENV_USER $DIN_COMMAND

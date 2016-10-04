@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+
+# Retrieve the directory of the script
+SELF_PATH=$(cd -P -- "$(dirname -- "$0")" && pwd -P) && SELF_PATH=$SELF_PATH/$(basename -- "$0")
+
+# resolve symlinks
+while [[ -h $SELF_PATH ]]; do
+    DIR=$(dirname -- "$SELF_PATH")
+    SYM=$(readlink "$SELF_PATH")
+    SELF_PATH=$(cd "$DIR" && cd "$(dirname -- "$SYM")" && pwd)/$(basename -- "$SYM")
+done
+
+DIR=$(dirname -- "$SELF_PATH")
+
+# Usage:
+# `din elm` executes elm binary on the file
+# `din elm/shell` creates a shell in the current folder that has elm in it's path
+# `din elm/<cmd>` executes the commands
+# `din elm/refresh` forces
+# `din elm[/*] --services postgres`
+
+while IFS='/' read -ra INPUT; do
+    TAG="${INPUT[0]}"
+    CMD="${INPUT[1]}"
+done <<< "$1"
+
+if [[ -z $CMD ]]; then
+    CMD=$TAG
+fi
+
+if [ ! -d "$DIR/$TAG" ]; then
+    echo "Can't find binary: '$TAG' doesn't exist"
+    exit
+fi
+
+if [[ "$(docker images -q din/base 2> /dev/null)" == "" ]]; then
+    echo "Creating base image...."
+    docker build -t "din/base" "$DIR/base" #>& /dev/null
+    echo "Base image created."
+
+    if [ $? -ne 0 ]; then
+        echo "Cannot create the 'din/base' image. Exiting"
+        exit 1
+    fi
+fi
+
+if [[ "$(docker images -q din/$TAG 2> /dev/null)" == "" ]]; then
+    echo "Creating '$TAG' image...."
+    docker build -t "din/$TAG" "$DIR/$TAG" #>& /dev/null
+    echo "Image '$TAG' created"
+
+    if [ $? -ne 0 ]; then
+        echo "Cannot create the 'din/$TAG' image. Exiting"
+        exit 1
+    fi
+fi
+
+ARGS="$CMD ${@:2}"
+
+docker run -it \
+       -e DIN_ENV_PWD=`pwd` \
+       -e DIN_ENV_UID=`id -u` \
+       -e DIN_ENV_USER=`id -nu` \
+       -e DIN_COMMAND="$ARGS" \
+       -v $HOME:"/home/$(id -nu)" \
+       "din/$TAG"
+
