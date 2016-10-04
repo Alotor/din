@@ -5,11 +5,13 @@ DIN is a series of scripts and Dockerfiles intended to easy star programming wit
 Currently the following languages are supported:
 
 - brainfuck
-- clojure
+- clojure (+ lein)
 - elm
 - erlang
+- groovy (+ gradle)
 - julia
-- ocaml
+- ocaml (+ opam)
+- scala (+ sbt)
 
 ## Usage
 
