@@ -1,0 +1,6 @@
+FROM din/base
+
+RUN pacman -S --noconfirm yasm nasm && \
+    ln -s /usr/bin/yasm /usr/local/bin/asm
+
+CMD ["/din"]
