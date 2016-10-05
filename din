@@ -28,14 +28,14 @@ if [[ -z $CMD ]]; then
     CMD=$TAG
 fi
 
-if [ ! -d "$DIR/$TAG" ]; then
+if [ ! -f "$DIR/lang/$TAG.docker" ]; then
     echo "Can't find binary: '$TAG' doesn't exist"
     exit
 fi
 
 if [[ "$(docker images -q din/base 2> /dev/null)" == "" ]]; then
     echo "Creating base image...."
-    docker build -t "din/base" "$DIR/base" #>& /dev/null
+    docker build -t "din/base" "$DIR/base" >& /dev/null
     echo "Base image created."
 
     if [ $? -ne 0 ]; then
@@ -46,7 +46,7 @@ fi
 
 if [[ "$(docker images -q din/$TAG 2> /dev/null)" == "" ]]; then
     echo "Creating '$TAG' image...."
-    docker build -t "din/$TAG" "$DIR/$TAG" #>& /dev/null
+    docker build -f "$DIR/lang/$TAG.docker" -t "din/$TAG" "$DIR/lang/" #>& /dev/null
     echo "Image '$TAG' created"
 
     if [ $? -ne 0 ]; then

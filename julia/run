@@ -1,8 +1,0 @@
-#!/usr/bin/env bash
-
-docker run -it \
-       -e DIN_ENV_PWD=`pwd` \
-       -e DIN_ENV_UID=`id -u` \
-       -e DIN_ENV_USER=`id -nu` \
-       -v $HOME:"/home/$(id -nu)" \
-       din/julia

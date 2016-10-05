@@ -4,6 +4,11 @@ DIN is a series of scripts and Dockerfiles intended to easy star programming wit
 
 Currently the following languages are supported:
 
+- asm (yasm + nasm)
+- cobol (gnu-cobol)
+- java (+ gradle + maven + ant)
+- python (+ pip)
+- R
 - brainfuck
 - clojure (+ lein)
 - elm
@@ -11,25 +16,22 @@ Currently the following languages are supported:
 - groovy (+ gradle)
 - julia
 - ocaml (+ opam)
-- R
 - scala (+ sbt)
 
 Planned languages:
-- ASM
 - Ada
 - C
 - C#
 - C++
 - Ceylon
-- Cobol
 - Common Lisp
 - D
 - Dart
 - Delphi
 - F#
+- Fortran
 - Frege
 - Go
-- Java
 - Kotlin
 - Lua
 - MIT Scheme
@@ -40,7 +42,6 @@ Planned languages:
 - Perl
 - Prolog
 - Python 2
-- Python 3
 - Racket
 - Ruby
 - Rust
