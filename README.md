@@ -14,6 +14,40 @@ Currently the following languages are supported:
 - R
 - scala (+ sbt)
 
+Planned languages:
+- ASM
+- Ada
+- C
+- C#
+- C++
+- Ceylon
+- Cobol
+- Common Lisp
+- D
+- Dart
+- Delphi
+- F#
+- Frege
+- Go
+- Java
+- Kotlin
+- Lua
+- MIT Scheme
+- Node
+- Octave
+- PHP
+- Pascal
+- Perl
+- Prolog
+- Python 2
+- Python 3
+- Racket
+- Ruby
+- Rust
+- Smalltalk
+- Swift
+
+
 ## Usage
 
 If you want just to execute the default "language" entry point you'll need to execute
