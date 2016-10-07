@@ -18,4 +18,7 @@ RUN cd /usr/local/frege && \
     unzip frege-repl.zip && \
     ln -s /usr/local/frege/frege-repl-1.4-SNAPSHOT/bin/frege-repl /usr/local/bin/frege
 
+RUN echo "java -Xss1m -cp /usr/local/frege/fregec.jar:. \$*" > /usr/local/bin/run && \
+    chmod 777 /usr/local/bin/run
+
 CMD ["/din"]
