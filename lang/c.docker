@@ -1,0 +1,5 @@
+FROM din/base
+
+RUN ln -s /usr/bin/c99 /usr/local/bin/c
+
+CMD "/din"

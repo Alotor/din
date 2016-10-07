@@ -1,0 +1,3 @@
+FROM din/base
+
+CMD "/din"

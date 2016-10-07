@@ -1,0 +1,6 @@
+FROM din/base
+
+RUN pacman -S --noconfirm go go-tools
+
+CMD ["/din"]
+

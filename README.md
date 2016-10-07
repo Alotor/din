@@ -4,34 +4,34 @@ DIN is a series of scripts and Dockerfiles intended to easy star programming wit
 
 Currently the following languages are supported:
 
+- ada (gnat)
 - asm (yasm + nasm)
-- cobol (gnu-cobol)
-- java (+ gradle + maven + ant)
-- python (+ pip)
-- R
 - brainfuck
+- c (gcc)
 - clojure (+ lein)
+- cobol (gnu-cobol)
+- cpp (g++)
 - elm
 - erlang
+- frege
 - groovy (+ gradle)
+- java (+ gradle + maven + ant)
 - julia
 - ocaml (+ opam)
+- python (+ pip)
+- r
 - scala (+ sbt)
+- ceylon
+- clisp
+- go
 
 Planned languages:
-- Ada
-- C
 - C#
-- C++
-- Ceylon
-- Common Lisp
 - D
 - Dart
 - Delphi
 - F#
 - Fortran
-- Frege
-- Go
 - Kotlin
 - Lua
 - MIT Scheme
@@ -100,4 +100,3 @@ For example, in clojure even if you have a repl calling the `clojure` binary, no
 ```
 din clojure/lein repl
 ```
-
