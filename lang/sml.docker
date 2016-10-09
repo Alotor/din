@@ -1,0 +1,8 @@
+FROM din/base
+
+RUN sudo -i -u work yaourt -S --noconfirm mosml
+
+RUN ln -s /usr/bin/mosml /usr/local/bin/sml && \
+    ln -s /usr/bin/mosmlc /usr/local/bin/smlc
+
+CMD ["/din"]

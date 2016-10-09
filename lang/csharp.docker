@@ -1,0 +1,10 @@
+FROM din/base
+
+RUN pacman -S --noconfirm mono
+
+RUN mkdir /usr/local/nuget/ && \
+    curl "https://api.nuget.org/downloads/nuget.exe" -o /usr/local/nuget/nuget.exe && \
+    echo "mono /usr/local/nuget/nuget.exe \$*" >> /usr/local/bin/nuget && \
+    chmod 777 /usr/local/bin/nuget
+
+CMD ["/din"]

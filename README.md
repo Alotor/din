@@ -1,4 +1,4 @@
-# DIN (Docker-in)
+# DIN (Docker In)
 
 DIN is a series of scripts and Dockerfiles intended to easy star programming with any language.
 
@@ -8,12 +8,17 @@ Currently the following languages are supported:
 - asm (yasm + nasm)
 - brainfuck
 - c (gcc)
+- ceylon
+- clisp
 - clojure (+ lein)
 - cobol (gnu-cobol)
-- cpp (g++)
+- cpp (g++ cmake libboost)
+- csharp (mono, nuget)
 - elm
 - erlang
 - frege
+- fsharp (mono, nuget)
+- go
 - groovy (+ gradle)
 - java (+ gradle + maven + ant)
 - julia
@@ -21,17 +26,14 @@ Currently the following languages are supported:
 - python (+ pip)
 - r
 - scala (+ sbt)
-- ceylon
-- clisp
-- go
+- sml (mosml)
 
 Planned languages:
-- C#
 - D
 - Dart
 - Delphi
-- F#
 - Fortran
+- Idris
 - Kotlin
 - Lua
 - MIT Scheme
@@ -47,7 +49,6 @@ Planned languages:
 - Rust
 - Smalltalk
 - Swift
-
 
 ## Usage
 
