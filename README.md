@@ -9,44 +9,48 @@ Currently the following languages are supported:
 - brainfuck
 - c (gcc)
 - ceylon
-- clisp
+- clisp (gnu clisp)
 - clojure (+ lein)
 - cobol (gnu-cobol)
-- cpp (g++ cmake libboost)
-- csharp (mono, nuget)
+- cpp (g++ + cmake + libboost)
+- csharp (mono + nuget)
 - elm
 - erlang
 - frege
-- fsharp (mono, nuget)
+- fsharp (mono + nuget)
 - go
 - groovy (+ gradle)
+- idris
 - java (+ gradle + maven + ant)
 - julia
+- lua
+- node (+ npm)
 - ocaml (+ opam)
+- octave
+- perl
 - python (+ pip)
 - r
+- ruby
+- rust (+ cargo)
 - scala (+ sbt)
 - sml (mosml)
 
-Planned languages:
+A total of *30* languages.
+
+The following languages are planned to be added to the complete set:
+
 - D
 - Dart
 - Delphi
 - Fortran
-- Idris
 - Kotlin
-- Lua
 - MIT Scheme
-- Node
-- Octave
+- Moonscript
 - PHP
 - Pascal
-- Perl
 - Prolog
 - Python 2
 - Racket
-- Ruby
-- Rust
 - Smalltalk
 - Swift
 

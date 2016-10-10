@@ -1,0 +1,5 @@
+FROM din/base
+
+RUN pacman -S --noconfirm idris
+
+CMD "/din"

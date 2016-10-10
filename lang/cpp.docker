@@ -1,3 +1,5 @@
 FROM din/base
 
+RUN pacman -S --noconfirm boost cmake
+
 CMD "/din"

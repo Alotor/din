@@ -1,0 +1,6 @@
+FROM din/base
+
+RUN pacman -S --noconfirm rust cargo && \
+    ln -s /usr/bin/rustc /usr/bin/rust
+
+CMD "/din"
