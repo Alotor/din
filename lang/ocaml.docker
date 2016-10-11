@@ -6,4 +6,4 @@ RUN pacman -S --noconfirm ocaml unzip && \
 RUN echo "eval \`opam config env\`" >> /setup.sh && \
     chmod 777 /setup.sh
 
-CMD ["/din" "/setup.sh"]
+CMD "/din"
