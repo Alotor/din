@@ -1,0 +1,6 @@
+FROM din/base
+
+RUN pacman -S --noconfirm fpc && \
+    ln -s /usr/bin/fpc /usr/local/bin/pascal
+
+CMD "/din"

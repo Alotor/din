@@ -1,5 +1,5 @@
 FROM din/base
 
-RUN pacman -S --noconfirm lua
+RUN pacman -S --noconfirm lua luarocks
 
 CMD "/din"

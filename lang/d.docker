@@ -1,0 +1,6 @@
+FROM din/base
+
+RUN pacman -S --noconfirm dmd && \
+    ln -s /usr/bin/dmd /usr/local/bin/d
+
+CMD "/din"

@@ -35,7 +35,7 @@ fi
 
 if [[ "$(docker images -q din/base 2> /dev/null)" == "" ]]; then
     echo "Creating base image...."
-    docker build -t "din/base" "$DIR/base" >& /dev/null
+    docker build -t "din/base" "$DIR/base" #>& /dev/null
     echo "Base image created."
 
     if [ $? -ne 0 ]; then

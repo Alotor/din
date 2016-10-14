@@ -1,9 +1,15 @@
 FROM din/base
 
-RUN pacman -S --noconfirm ocaml unzip && \
+RUN pacman -S --noconfirm ocaml unzip rlwrap && \
     sudo -i -u work yaourt -S --noconfirm  opam
 
+RUN echo "rlwrap /usr/bin/ocaml" > /usr/local/bin/ocaml && \
+    chmod 777 /usr/local/bin/ocaml
+
 RUN echo "eval \`opam config env\`" >> /setup.sh && \
+    echo "export PATH=/usr/local/bin:$PATH" >> /setup.sh && \
     chmod 777 /setup.sh
 
-CMD "/din"
+ENV DIN_ENTRY "source /setup.sh"
+
+CMD /din

@@ -1,0 +1,7 @@
+FROM din/base
+
+RUN pacman -S --noconfirm luarocks lua lua-filesystem lua lua-lpeg lua-alt-getopt
+RUN luarocks install moonscript && \
+    ln -s /usr/bin/moon /usr/local/bin/moonscript
+   
+CMD "/din"

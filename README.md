@@ -14,8 +14,11 @@ Currently the following languages are supported:
 - cobol (gnu-cobol)
 - cpp (g++ + cmake + libboost)
 - csharp (mono + nuget)
+- d (dmd)
+- dart
 - elm
 - erlang
+- fortran (gcc-fortran)
 - frege
 - fsharp (mono + nuget)
 - go
@@ -23,36 +26,34 @@ Currently the following languages are supported:
 - idris
 - java (+ gradle + maven + ant)
 - julia
-- lua
+- kotlin
+- lua (+luarocks)
+- moonscript
 - node (+ npm)
 - ocaml (+ opam)
 - octave
+- pascal (fpc)
 - perl
+- php (+pear)
 - python (+ pip)
 - r
 - ruby
 - rust (+ cargo)
 - scala (+ sbt)
+- scheme (mit-scheme)
 - sml (mosml)
 
-A total of *30* languages.
+A total of *38* languages.
 
 The following languages are planned to be added to the complete set:
 
-- D
-- Dart
-- Delphi
-- Fortran
-- Kotlin
-- MIT Scheme
-- Moonscript
-- PHP
-- Pascal
 - Prolog
 - Python 2
 - Racket
 - Smalltalk
 - Swift
+- Eiffel
+- Algol
 
 ## Usage
 

@@ -18,4 +18,9 @@ cd "$DIN_ENV_PWD"
 # echo "DIN_ENV_USER=$DIN_ENV_USER"
 # echo "DIN_COMMAND=$DIN_COMMAND"
 
-sudo -u $DIN_ENV_USER $DIN_COMMAND
+#DIN_ENTRY=$1
+if [[ ! -z $DIN_ENTRY ]]; then
+    DIN_COMMAND="$DIN_ENTRY && $DIN_COMMAND"
+fi
+
+sudo -u $DIN_ENV_USER sh -c "$DIN_COMMAND"

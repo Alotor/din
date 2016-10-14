@@ -1,0 +1,6 @@
+FROM din/base
+
+RUN pacman -S --noconfirm gcc-fortran && \
+    ln -s /usr/bin/gfortran /usr/local/bin/fortran 
+
+CMD "/din"
