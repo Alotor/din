@@ -1,6 +1,6 @@
 FROM din/base
 
 RUN pacman -S --noconfirm gcc-ada && \
-    ln -s /usr/sbin/gnatmake /usr/bin/ada 
+    ln -s /usr/bin/gnatmake /usr/local/bin/ada 
 
 CMD "/din"

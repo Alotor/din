@@ -1,0 +1,6 @@
+FROM din/base
+
+RUN pacman -S --noconfirm smalltalk && \
+    ln -s /usr/bin/gst /usr/local/bin/smalltalk
+
+CMD "/din"

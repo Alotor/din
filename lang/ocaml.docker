@@ -7,7 +7,6 @@ RUN echo "rlwrap /usr/bin/ocaml" > /usr/local/bin/ocaml && \
     chmod 777 /usr/local/bin/ocaml
 
 RUN echo "eval \`opam config env\`" >> /setup.sh && \
-    echo "export PATH=/usr/local/bin:$PATH" >> /setup.sh && \
     chmod 777 /setup.sh
 
 ENV DIN_ENTRY "source /setup.sh"

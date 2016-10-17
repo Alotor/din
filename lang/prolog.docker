@@ -1,0 +1,6 @@
+FROM din/base
+
+RUN pacman -S --noconfirm swi-prolog && \
+    ln -s /usr/bin/swipl /usr/local/bin/prolog
+
+CMD "/din"

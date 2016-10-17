@@ -42,18 +42,22 @@ Currently the following languages are supported:
 - scala (+ sbt)
 - scheme (mit-scheme)
 - sml (mosml)
+- prolog (swi-prolog)
+- racket
+- smalltalk
 
 A total of *38* languages.
 
 The following languages are planned to be added to the complete set:
 
-- Prolog
 - Python 2
-- Racket
-- Smalltalk
 - Swift
 - Eiffel
 - Algol
+- Crystal
+- Emacs Lisp
+- Objective C
+- Hack
 
 ## Usage
 
