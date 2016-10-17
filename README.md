@@ -46,7 +46,7 @@ Currently the following languages are supported:
 - racket
 - smalltalk
 
-A total of *38* languages.
+A total of *42* languages.
 
 The following languages are planned to be added to the complete set:
 
