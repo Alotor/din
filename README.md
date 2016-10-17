@@ -1,6 +1,6 @@
 # DIN (Docker In)
 
-DIN is a series of scripts and Dockerfiles intended to easy star programming with any language.
+DIN is a series of scripts and Dockerfiles intended to easy start programming with any language.
 
 Currently the following languages are supported:
 
