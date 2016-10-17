@@ -1,67 +1,246 @@
 #!/usr/bin/env bash
 
-# Retrieve the directory of the script
-SELF_PATH=$(cd -P -- "$(dirname -- "$0")" && pwd -P) && SELF_PATH=$SELF_PATH/$(basename -- "$0")
+function retrieve_script_path() {
+    # Retrieve the directory of the script
+    SELF_PATH=$(cd -P -- "$(dirname -- "$0")" && pwd -P) && SELF_PATH=$SELF_PATH/$(basename -- "$0")
 
-# resolve symlinks
-while [[ -h $SELF_PATH ]]; do
+    # resolve symlinks
+    while [[ -h $SELF_PATH ]]; do
+        DIR=$(dirname -- "$SELF_PATH")
+        SYM=$(readlink "$SELF_PATH")
+        SELF_PATH=$(cd "$DIR" && cd "$(dirname -- "$SYM")" && pwd)/$(basename -- "$SYM")
+    done
+
     DIR=$(dirname -- "$SELF_PATH")
-    SYM=$(readlink "$SELF_PATH")
-    SELF_PATH=$(cd "$DIR" && cd "$(dirname -- "$SYM")" && pwd)/$(basename -- "$SYM")
-done
+}
 
-DIR=$(dirname -- "$SELF_PATH")
+function show_help() {
+    read -r -d '' HELP <<- EOM
+    DIN - Docker IN. Helping script to ease the multi-language development
+Usage:
+    'din' - shows the help
+    'din list' - list the possible languages
+    'din clean' - deletes all the containers
+    'din clean <lang>' - deletes the specific language container
+    'din update <lang>' forces to reconstruct the container
+    'din install all|<lang>' install the container for <lang>. 'all' will install every possible language
+    'din <lang>' executes elm binary on the file
+    'din <lang>/<cmd>' executes the command <cmd> inside a container for the language
+EOM
+    echo "$HELP"
+}
 
-# Usage:
-# `din elm` executes elm binary on the file
-# `din elm/shell` creates a shell in the current folder that has elm in it's path
-# `din elm/<cmd>` executes the commands
-# `din elm/refresh` forces
-# `din elm[/*] --services postgres`
+function show_candidates() {
+    echo "Possible candidates are:"
+    echo ""
+    echo "$CANDIDATES"
+}
 
-while IFS='/' read -ra INPUT; do
-    TAG="${INPUT[0]}"
-    CMD="${INPUT[1]}"
-done <<< "$1"
+function install_language() {
+    TAG="$1"
 
-if [[ -z $CMD ]]; then
-    CMD=$TAG
-fi
+    echo "Installing language $TAG..."
+    if [[ "$(docker images -q din/$TAG 2> /dev/null)" == "" ]]; then
+        docker build -f "$DIR/lang/$TAG.docker" -t "din/$TAG" "$DIR/lang/" #>& /dev/null
 
-if [ ! -f "$DIR/lang/$TAG.docker" ]; then
-    echo "Can't find binary: '$TAG' doesn't exist"
-    exit
-fi
-
-if [[ "$(docker images -q din/base 2> /dev/null)" == "" ]]; then
-    echo "Creating base image...."
-    docker build -t "din/base" "$DIR/base" #>& /dev/null
-    echo "Base image created."
-
-    if [ $? -ne 0 ]; then
-        echo "Cannot create the 'din/base' image. Exiting"
-        exit 1
+        if [ $? -ne 0 ]; then
+            echo "Cannot create the 'din/$TAG' image."
+            return 1
+        fi
     fi
-fi
 
-if [[ "$(docker images -q din/$TAG 2> /dev/null)" == "" ]]; then
-    echo "Creating '$TAG' image...."
+    echo "Installed '$TAG'"
+    return 0
+}
+
+function update_language() {
+    TAG="$1"
+
+    echo "Updating language $TAG..."
+    if [[ "$(docker images -q din/$TAG 2> /dev/null)" == "" ]]; then
+        echo "The language $TAG has not been installed. Cancel update"
+        return 1
+    fi
+
     docker build -f "$DIR/lang/$TAG.docker" -t "din/$TAG" "$DIR/lang/" #>& /dev/null
-    echo "Image '$TAG' created"
 
     if [ $? -ne 0 ]; then
-        echo "Cannot create the 'din/$TAG' image. Exiting"
+        echo "Cannot create the 'din/$TAG' image."
+        return 1
+    fi
+
+
+    echo "Installed '$TAG'"
+    return 0
+}
+
+function din_clean_command() {
+    TAG=$1
+    if [[ -z $TAG ]]; then
+        echo "I'm about to proceed and delete all images."
+        read -p "Are you sure? (y/n)" -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]
+        then
+            echo docker rmi --force $(docker images | grep "din" | awk '{print $3}')
+        else
+            exit
+        fi
+    elif [[ -e "$DIR/lang/$TAG.docker" ]]; then
+        if [[ ! -z $(docker images -q "din/$TAG") ]]; then
+            echo docker rmi --force "din/$TAG"
+        else
+            echo "There is nothing to clean for language $TAG"
+            exit
+        fi
+    else
+        echo "Language $TAG not found. Exiting"
+        exit
+    fi
+}
+
+function din_update_command() {
+    TAG=$1
+
+    if [[ -z $TAG ]]; then
+        TAG="all"
+    fi
+
+    if [ "all" == "$TAG" ]; then
+        for LANG in $CANDIDATES
+        do
+            if [ "$(docker images -q din/$LANG 2> /dev/null)" != "" ]; then
+                update_language $LANG
+            fi
+        done
+    elif [[ -e "$DIR/lang/$TAG.docker" ]]; then
+        if [ "$(docker images -q din/$TAG 2> /dev/null)" != "" ]; then
+            update_language $TAG
+        else
+            echo "Language $TAG has not been installed"
+        fi
+    else
+        echo "ERROR. Language '$TAG' not a valid candidate."
+        echo
+        show_candidates
         exit 1
     fi
-fi
+}
 
-ARGS="$CMD ${@:2}"
+function din_install_command() {
+    TAG=$1
 
-docker run -it \
-       -e DIN_ENV_PWD=`pwd` \
-       -e DIN_ENV_UID=`id -u` \
-       -e DIN_ENV_USER=`id -nu` \
-       -e DIN_COMMAND="$ARGS" \
-       -v $HOME:"/home/$(id -nu)" \
-       "din/$TAG"
+    if [[ ! -z $TAG ]]; then
+        if [ "all" == "$TAG" ]; then
+            for LANG in $CANDIDATES
+            do
+                install_language $LANG
+            done
+        elif [[ -e "$DIR/lang/$TAG.docker" ]]; then
+            install_language $TAG
+        else
+            echo "ERROR. Language '$TAG' not a valid candidate."
+            echo
+            show_candidates
+            exit 1
+        fi
+    else
+        echo "ERROR. The install command needs the language to install or 'all'"
+        echo "din install <lang | all>"
+        echo
+        show_candidates
+        exit 1
+    fi
+}
 
+function execute_din() {
+    # Parse the input command i.e: lua/bash
+    while IFS='/' read -ra INPUT; do
+        TAG="${INPUT[0]}"
+        CMD="${INPUT[1]}"
+    done <<< "$1"
+
+    # If there is no command, the command is the language
+    if [[ -z $CMD ]]; then
+        CMD=$TAG
+    fi
+
+    if [ ! -f "$DIR/lang/$TAG.docker" ]; then
+        echo "ERROR: Can't find language: '$TAG'"
+        echo
+        show_candidates
+        exit 1
+    fi
+
+    # Check if the base image already exists
+    if [[ "$(docker images -q din/base 2> /dev/null)" == "" ]]; then
+        echo "Creating base image...."
+        docker build -t "din/base" "$DIR/base" #>& /dev/null
+        echo "Base image created."
+
+        if [ $? -ne 0 ]; then
+            echo "Cannot create the 'din/base' image. Exiting"
+            exit 1
+        fi
+    fi
+
+    # Check if the image exists
+    if [[ "$(docker images -q din/$TAG 2> /dev/null)" == "" ]]; then
+        echo "Creating '$TAG' image...."
+        docker build -f "$DIR/lang/$TAG.docker" -t "din/$TAG" "$DIR/lang/" #>& /dev/null
+        echo "Image '$TAG' created"
+
+        if [ $? -ne 0 ]; then
+            echo "Cannot create the 'din/$TAG' image. Exiting"
+            exit 1
+        fi
+    fi
+
+    ARGS="$CMD ${@:2}"
+
+    docker run -it \
+           -e DIN_ENV_PWD=`pwd` \
+           -e DIN_ENV_UID=`id -u` \
+           -e DIN_ENV_USER=`id -nu` \
+           -e DIN_COMMAND="$ARGS" \
+           -v $HOME:"/home/$(id -nu)" \
+           "din/$TAG"
+}
+
+function main () {
+    if [[ -z $1 ]]; then
+        show_help
+        exit
+    fi
+
+    retrieve_script_path
+
+    CANDIDATES=$(ls -1 "$DIR/lang" | sed -e 's/\..*$//')
+
+    case $1 in
+        help)
+            show_help
+            ;;
+
+        list)
+            show_candidates
+            ;;
+
+        clean)
+            din_clean_command $2
+            ;;
+
+        update)
+            din_update_command $2
+            ;;
+
+        install)
+            din_install_command $2
+            ;;
+
+        *)
+            execute_din $*
+    esac
+}
+
+main $*
