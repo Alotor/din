@@ -45,6 +45,7 @@ Currently the following languages are supported:
 - prolog (swi-prolog)
 - racket
 - smalltalk
+- tcl
 
 A total of *42* languages.
 
