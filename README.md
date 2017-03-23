@@ -36,6 +36,7 @@ Currently the following languages are supported:
 - perl
 - php (+pear)
 - python (+ pip)
+- python2 (+ pip2)
 - r
 - ruby
 - rust (+ cargo)
@@ -50,7 +51,6 @@ A total of *42* languages.
 
 The following languages are planned to be added to the complete set:
 
-- Python 2
 - Swift
 - Eiffel
 - Algol
