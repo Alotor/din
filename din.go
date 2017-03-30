@@ -3,6 +3,7 @@ package main
 import (
     "fmt"
     "runtime"
+    "errors"
     "strings"
     "os"
     "os/exec"
@@ -10,6 +11,7 @@ import (
 	"io/ioutil"
     "path/filepath"
     "github.com/fsouza/go-dockerclient"
+    "github.com/urfave/cli"
 )
 
 var dockerClient *docker.Client
@@ -35,23 +37,6 @@ func confirm(action string) bool {
         return true
     }
     return false
-}
-
-func showHelp() {
-    fmt.Println(`DIN - Docker IN. Command to ease the multi-language development
-
-Usage: din <command> <arguments>
-
-Commands:
-    help                 shows the help
-    list                 list the possible languages
-    clean                deletes all the containers
-    clean [<lang>]       deletes the specific language container
-    update [<lang>]      forces to reconstruct the container
-    install all|<lang>   install the container for <lang>. 'all' will install every possible language
-    <lang>               executes elm binary on the file
-    <lang>/<cmd>         executes the command <cmd> inside a container for the language`)
-
 }
 
 func availableTags() []string {
@@ -142,9 +127,10 @@ func updateLanguage(tag string) bool {
     return true
 }
 
-func dinCleanCommand(tags ...string) {
+func cleanCommand(c *cli.Context) error {
     availableTagsList := availableTags()
-    if len(tags) == 0 && confirm("delete all images"){
+    tags := c.Args()
+    if c.NArg() == 0 && confirm("delete all images") {
         for _, tag := range availableTagsList {
             if checkImageExists(tag) {
                 tags = append(tags, tag)
@@ -162,13 +148,15 @@ func dinCleanCommand(tags ...string) {
                 dockerClient.RemoveImageExtended(fmt.Sprintf("din/%s", tag), opts)
             }
         } else {
-            fmt.Println("Language %s not found.", tag)
+            return fmt.Errorf("Language %s not found", tag)
         }
     }
+    return nil
 }
 
-func dinUpdateCommand(tags ...string) {
-    if len(tags) == 0 && confirm("update all images"){
+func updateCommand(c *cli.Context) error {
+    tags := c.Args()
+    if c.NArg() == 0 && confirm("update all images") {
         for _, tag := range availableTags() {
             if checkImageExists(tag) {
                 tags = append(tags, tag)
@@ -185,24 +173,28 @@ func dinUpdateCommand(tags ...string) {
                 updateLanguage(tag)
             }
         } else {
-            fmt.Printf("ERROR.Language %s not a valid candidate.\n", tag)
+            return fmt.Errorf("Language %s not a valid candidate", tag)
         }
     }
+    return nil
 }
 
-func dinInstallCommand(tag string) bool {
-    if tag == "all" {
-        for _, lang := range availableTags() {
-            installLanguage(lang)
-        }
-    } else if contains(availableTags(), tag) {
-        installLanguage(tag)
-    } else {
-        fmt.Printf("ERROR.Language %s not a valid candidate.\n", tag)
-        showCandidates()
-        return false
+func installCommand(c *cli.Context) error {
+    if c.NArg() == 0 {
+        return errors.New("Must exist the language")
     }
-    return true
+    for _, tag := range c.Args() {
+        if tag == "all" {
+            for _, lang := range availableTags() {
+                installLanguage(lang)
+            }
+        } else if contains(availableTags(), tag) {
+            installLanguage(tag)
+        } else {
+            return fmt.Errorf("Language %s not a valid candidate", tag)
+        }
+    }
+    return nil
 }
 
 func executeDin(tag string, cmd string) bool {
@@ -253,33 +245,59 @@ func executeDin(tag string, cmd string) bool {
     return true
 }
 
+func showCandidatesCommand(c *cli.Context) error {
+      showCandidates()
+      return nil
+}
+
+func mainCommand(c *cli.Context) error {
+     if c.NArg() == 0 {
+         cli.ShowAppHelp(c)
+         return nil
+     }
+     params := strings.Split(c.Args()[0], "/")
+     if(len(params) == 1) {
+         executeDin(params[0], "")
+     } else {
+         executeDin(params[0], params[1])
+     }
+     return nil
+}
+
 func main () {
     dockerClient, _ = docker.NewClient("unix:///var/run/docker.sock")
-
-    if len(os.Args) == 1 {
-        showHelp()
-        return
+    app := cli.NewApp()
+    app.Commands = []cli.Command{
+      {
+        Name:    "list",
+        Usage:   "list the possible languages",
+        Action:  showCandidatesCommand,
+      },
+      {
+        Name:    "clean",
+        Usage:   "deletes a language container",
+        Action:  cleanCommand,
+      },
+      {
+        Name:    "update",
+        Usage:   "update a language container",
+        Action:  updateCommand,
+      },
+      {
+        Name:    "install",
+        Usage:   "install the container for <lang>. 'all' will install every possible language",
+        ArgsUsage: "all|<lang>",
+        Action:  installCommand,
+      },
     }
+    app.HideVersion = true
+    app.UsageText = "din <command> <arguments>"
+    app.Name = "Docker IN"
+    app.Usage = "Command to ease the multi-language development"
+    app.Action = mainCommand
 
-    cmd := os.Args[1]
-
-    switch cmd {
-        case "help":
-            showHelp()
-        case "list":
-            showCandidates()
-        case "clean":
-            dinCleanCommand(os.Args[2:]...)
-        case "update":
-            dinUpdateCommand(os.Args[2:]...)
-        case "install":
-            dinInstallCommand(os.Args[2])
-        default:
-            params := strings.Split(cmd, "/")
-            if(len(params) == 1) {
-                executeDin(params[0], "")
-            } else {
-                executeDin(params[0], params[1])
-            }
+    err := app.Run(os.Args)
+    if err != nil {
+        fmt.Printf("ERROR: %s\n", err)
     }
 }
