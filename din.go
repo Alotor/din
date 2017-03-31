@@ -62,6 +62,27 @@ func contains(s []string, e string) bool {
     return false
 }
 
+func runImage(tag string, cmd string) bool {
+    currentUser, _ := user.Current()
+    currentDir, _ := os.Getwd()
+
+    dockerCmd := exec.Command(
+        "docker", "run",
+        "-it",
+        "-e", fmt.Sprintf("DIN_ENV_PWD=\"%s\"", currentDir),
+        "-e", fmt.Sprintf("DIN_ENV_UID=%s", currentUser.Uid),
+        "-e", fmt.Sprintf("DIN_ENV_USER=%s", currentUser.Username),
+        "-e", fmt.Sprintf("DIN_COMMAND=%s", cmd),
+        "-v", fmt.Sprintf("%s:/home/%s", currentUser.HomeDir, currentUser.Username),
+        fmt.Sprintf("din/%s", tag),
+    )
+    dockerCmd.Stdin = os.Stdin
+    dockerCmd.Stdout = os.Stdout
+    dockerCmd.Stderr = os.Stderr
+    dockerCmd.Run()
+    return true
+}
+
 func buildImage(tag string) bool {
     opts := docker.BuildImageOptions{
         Name: fmt.Sprintf("din/%s", tag),
@@ -225,24 +246,7 @@ func executeDin(tag string, cmd string) bool {
         }
     }
 
-    currentUser, _ := user.Current()
-    currentDir, _ := os.Getwd()
-
-    dockerCmd := exec.Command(
-        "docker", "run",
-        "-it",
-        "-e", fmt.Sprintf("DIN_ENV_PWD=\"%s\"", currentDir),
-        "-e", fmt.Sprintf("DIN_ENV_UID=%s", currentUser.Uid),
-        "-e", fmt.Sprintf("DIN_ENV_USER=%s", currentUser.Username),
-        "-e", fmt.Sprintf("DIN_COMMAND=%s", cmd),
-        "-v", fmt.Sprintf("%s:/home/%s", currentUser.HomeDir, currentUser.Username),
-        fmt.Sprintf("din/%s", tag),
-    )
-    dockerCmd.Stdin = os.Stdin
-    dockerCmd.Stdout = os.Stdout
-    dockerCmd.Stderr = os.Stderr
-    dockerCmd.Run()
-    return true
+    return runImage(tag, cmd)
 }
 
 func showCandidatesCommand(c *cli.Context) error {
