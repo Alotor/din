@@ -144,7 +144,7 @@ func updateLanguage(tag string) bool {
         return false
     }
 
-    fmt.Println("Updated '%'", tag)
+    fmt.Printf("Updated '%s'\n", tag)
     return true
 }
 
