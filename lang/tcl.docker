@@ -1,0 +1,6 @@
+FROM din/base
+
+RUN pacman -S --noconfirm tcl
+RUN ln -s /usr/bin/tclsh /usr/local/bin/tcl
+
+CMD "/din"
