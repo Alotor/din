@@ -1,7 +1,10 @@
 package cmd
 
 import (
+	"archive/tar"
+	"bytes"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"os/user"
@@ -22,6 +25,36 @@ func showCandidates() error {
 		fmt.Println(tag)
 	}
 	return nil
+}
+
+func toTarBuffer(inputs ...*rice.File) (*bytes.Buffer, error) {
+	var buf bytes.Buffer
+	tw := tar.NewWriter(&buf)
+	for _, input := range inputs {
+		stat, err := input.Stat()
+		if err != nil {
+			return nil, err
+		}
+
+		hdr := &tar.Header{Name: stat.Name(), Mode: int64(stat.Mode()), Size: stat.Size()}
+
+		if err := tw.WriteHeader(hdr); err != nil {
+			return nil, err
+		}
+
+		inputbuf := make([]byte, stat.Size())
+		if _, err := input.Read(inputbuf); err != nil {
+			return nil, err
+		}
+		if _, err := tw.Write(inputbuf); err != nil {
+			return nil, err
+		}
+	}
+
+	if err := tw.Close(); err != nil {
+		return nil, err
+	}
+	return &buf, nil
 }
 
 func availableTags() ([]string, error) {
@@ -102,24 +135,54 @@ func runImage(tag string, cmd string) bool {
 }
 
 func buildImage(dockerClient *docker.Client, tag string) bool {
+	box := rice.MustFindBox("../lang")
+	// TODO: HANDLE THE ERROR PROPERLY (PROPAGATING IT)
+	dockerfile, err := box.Open(fmt.Sprintf("%s.docker", tag))
+	if err != nil {
+		return false
+	}
+
+	buffer, err := toTarBuffer(dockerfile)
+	if err != nil {
+		return false
+	}
+
 	opts := docker.BuildImageOptions{
 		Name:         fmt.Sprintf("din/%s", tag),
-		Dockerfile:   fmt.Sprintf("lang/%s.docker", tag),
-		ContextDir:   getScriptPath(),
+		Dockerfile:   fmt.Sprintf("%s.docker", tag),
+		InputStream:  buffer,
 		OutputStream: os.Stdout,
 	}
-	err := dockerClient.BuildImage(opts)
+	err = dockerClient.BuildImage(opts)
 	return err == nil
 }
 
 func buildBaseImage(dockerClient *docker.Client) bool {
+	box := rice.MustFindBox("../base")
+	dockerfile, err := box.Open("Dockerfile")
+	if err != nil {
+		log.Fatal(err.Error())
+		return false
+	}
+	dinscript, err := box.Open("din")
+	if err != nil {
+		log.Fatal(err.Error())
+		return false
+	}
+	buffer, err := toTarBuffer(dockerfile, dinscript)
+	if err != nil {
+		log.Fatal(err.Error())
+		return false
+	}
 	opts := docker.BuildImageOptions{
 		Name:         "din/base",
-		Dockerfile:   "Dockerfile",
-		ContextDir:   filepath.Join(getScriptPath(), "base"),
+		InputStream:  buffer,
 		OutputStream: os.Stdout,
 	}
-	err := dockerClient.BuildImage(opts)
+	err = dockerClient.BuildImage(opts)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 	return err == nil
 }
 
