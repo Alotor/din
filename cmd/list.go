@@ -1,4 +1,4 @@
-// Copyright © 2018 NAME HERE <EMAIL ADDRESS>
+// Copyright © 2017 NAME HERE <EMAIL ADDRESS>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,6 +15,9 @@
 package cmd
 
 import (
+	"fmt"
+	"log"
+
 	"github.com/spf13/cobra"
 )
 
@@ -23,7 +26,13 @@ var listCmd = &cobra.Command{
 	Short: "list the possible languages",
 	Long:  `list the possible languages`,
 	Run: func(cmd *cobra.Command, args []string) {
-		showCandidates()
+		tags, err := availableTags()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		for _, tag := range tags {
+			fmt.Println(tag)
+		}
 	},
 }
 

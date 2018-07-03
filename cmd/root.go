@@ -38,7 +38,7 @@ var rootCmd = &cobra.Command{
 }
 
 func rootCmdF(cmd *cobra.Command, args []string) {
-	dockerClient, err := docker.NewClient("unix:///var/run/docker.sock")
+	dockerClient, err := docker.NewClientFromEnv()
 	if err != nil {
 		log.Fatalf("Unnable to connect to docker: %v", err)
 	}
