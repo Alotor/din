@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"log"
 
-	docker "github.com/fsouza/go-dockerclient"
+	docker "github.com/docker/docker/client"
 	"github.com/spf13/cobra"
 )
 
@@ -35,7 +35,7 @@ func init() {
 }
 
 func updateCmdF(cmd *cobra.Command, tags []string) {
-	dockerClient, err := docker.NewClientFromEnv()
+	dockerClient, err := docker.NewEnvClient()
 	if err != nil {
 		log.Fatalf("Unnable to connect to docker: %v", err)
 	}

@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	rice "github.com/GeertJohan/go.rice"
-	docker "github.com/fsouza/go-dockerclient"
+	docker "github.com/docker/docker/client"
 )
 
 func availableTags() ([]string, error) {
@@ -48,7 +48,7 @@ func executeDin(dockerClient *docker.Client, tag string, cmd string) error {
 		}
 	}
 
-	return runImage(tag, cmd)
+	return runImage(dockerClient, tag, cmd)
 }
 
 func contains(s []string, e string) bool {

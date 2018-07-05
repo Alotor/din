@@ -20,7 +20,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/fsouza/go-dockerclient"
+	docker "github.com/docker/docker/client"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -38,16 +38,20 @@ var rootCmd = &cobra.Command{
 }
 
 func rootCmdF(cmd *cobra.Command, args []string) {
-	dockerClient, err := docker.NewClientFromEnv()
+	dockerClient, err := docker.NewEnvClient()
 	if err != nil {
 		log.Fatalf("Unnable to connect to docker: %v", err)
 	}
 
 	params := strings.Split(args[0], "/")
 	if len(params) == 1 {
-		executeDin(dockerClient, params[0], "")
+		if err := executeDin(dockerClient, params[0], ""); err != nil {
+			log.Fatal(err)
+		}
 	} else {
-		executeDin(dockerClient, params[0], params[1])
+		if err := executeDin(dockerClient, params[0], params[1]); err != nil {
+			log.Fatal(err)
+		}
 	}
 	return
 }

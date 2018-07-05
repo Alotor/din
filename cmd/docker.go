@@ -3,20 +3,27 @@ package cmd
 import (
 	"archive/tar"
 	"bytes"
+	"context"
 	"fmt"
 	"os"
-	"os/exec"
 	"os/user"
+	"time"
 
 	rice "github.com/GeertJohan/go.rice"
-	docker "github.com/fsouza/go-dockerclient"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/network"
+	docker "github.com/docker/docker/client"
 )
 
 func checkImageExists(dockerClient *docker.Client, tag string) bool {
-	if _, err := dockerClient.InspectImage(fmt.Sprintf("din/%s", tag)); err != nil {
+	if y, _, err := dockerClient.ImageInspectWithRaw(context.Background(), fmt.Sprintf("din/%s", tag)); err != nil {
+		fmt.Println(err)
 		return false
+	} else {
+		fmt.Println(y)
+		return true
 	}
-	return true
 }
 
 func buildImage(dockerClient *docker.Client, tag string) error {
@@ -32,13 +39,11 @@ func buildImage(dockerClient *docker.Client, tag string) error {
 		return err
 	}
 
-	opts := docker.BuildImageOptions{
-		Name:         fmt.Sprintf("din/%s", tag),
-		Dockerfile:   fmt.Sprintf("%s.docker", tag),
-		InputStream:  buffer,
-		OutputStream: os.Stdout,
+	opts := types.ImageBuildOptions{
+		Tags:       []string{fmt.Sprintf("din/%s", tag)},
+		Dockerfile: fmt.Sprintf("%s.docker", tag),
 	}
-	err = dockerClient.BuildImage(opts)
+	_, err = dockerClient.ImageBuild(context.Background(), buffer, opts)
 	if err != nil {
 		return err
 	}
@@ -59,36 +64,65 @@ func buildBaseImage(dockerClient *docker.Client) error {
 	if err != nil {
 		return err
 	}
-	opts := docker.BuildImageOptions{
-		Name:         "din/base",
-		InputStream:  buffer,
-		OutputStream: os.Stdout,
+	opts := types.ImageBuildOptions{
+		Tags:       []string{"din/base"},
+		Dockerfile: "Dockerfile",
 	}
-	err = dockerClient.BuildImage(opts)
+	_, err = dockerClient.ImageBuild(context.Background(), buffer, opts)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func runImage(tag string, cmd string) error {
+func runImage(dockerClient *docker.Client, tag string, cmd string) error {
 	currentUser, _ := user.Current()
 	currentDir, _ := os.Getwd()
 
-	dockerCmd := exec.Command(
-		"docker", "run",
-		"-it",
-		"-e", fmt.Sprintf("DIN_ENV_PWD=\"%s\"", currentDir),
-		"-e", fmt.Sprintf("DIN_ENV_UID=%s", currentUser.Uid),
-		"-e", fmt.Sprintf("DIN_ENV_USER=%s", currentUser.Username),
-		"-e", fmt.Sprintf("DIN_COMMAND=%s", cmd),
-		"-v", fmt.Sprintf("%s:/home/%s", currentUser.HomeDir, currentUser.Username),
-		fmt.Sprintf("din/%s", tag),
-	)
-	dockerCmd.Stdin = os.Stdin
-	dockerCmd.Stdout = os.Stdout
-	dockerCmd.Stderr = os.Stderr
-	dockerCmd.Run()
+	environment := []string{
+		fmt.Sprintf("DIN_ENV_PWD=%s", currentDir),
+		fmt.Sprintf("DIN_ENV_UID=%s", currentUser.Uid),
+		fmt.Sprintf("DIN_ENV_PWD=%s", currentUser.Username),
+		fmt.Sprintf("DIN_COMMAND=%s", cmd),
+	}
+
+	createOpts := &container.Config{
+		Env:   environment,
+		Image: fmt.Sprintf("din/%s", tag),
+	}
+
+	container, err := dockerClient.ContainerCreate(context.Background(), createOpts, &container.HostConfig{}, &network.NetworkingConfig{}, fmt.Sprintf("din-%s", tag))
+	if err != nil {
+		return err
+	}
+	defer dockerClient.ContainerRemove(context.Background(), container.ID, types.ContainerRemoveOptions{Force: true})
+
+	err = dockerClient.ContainerStart(context.Background(), container.ID, types.ContainerStartOptions{})
+	if err != nil {
+		return err
+	}
+	timeout := 10 * time.Second
+	defer dockerClient.ContainerStop(context.Background(), container.ID, &timeout)
+
+	execConfig := types.ExecConfig{
+		AttachStdin:  true,
+		AttachStdout: true,
+		AttachStderr: true,
+		Tty:          true,
+		Cmd:          []string{cmd},
+	}
+
+	exec, err := dockerClient.ContainerExecCreate(context.Background(), container.ID, execConfig)
+	if err != nil {
+		return err
+	}
+	err = dockerClient.ContainerExecStart(context.Background(), exec.ID, types.ExecStartCheck{
+		Detach: true,
+		Tty:    true,
+	})
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

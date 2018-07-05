@@ -15,10 +15,12 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"log"
 
-	"github.com/fsouza/go-dockerclient"
+	types "github.com/docker/docker/api/types"
+	docker "github.com/docker/docker/client"
 	"github.com/spf13/cobra"
 )
 
@@ -35,7 +37,7 @@ func init() {
 }
 
 func cleanCmdF(cmd *cobra.Command, tags []string) {
-	dockerClient, err := docker.NewClientFromEnv()
+	dockerClient, err := docker.NewEnvClient()
 	if err != nil {
 		log.Fatalf("Unnable to connect to docker: %v", err)
 	}
@@ -56,8 +58,8 @@ func cleanCmdF(cmd *cobra.Command, tags []string) {
 				fmt.Printf("There is nothing to clean for language %s.\n", tag)
 			} else {
 				fmt.Printf("Cleaning %s.\n", tag)
-				opts := docker.RemoveImageOptions{Force: true}
-				dockerClient.RemoveImageExtended(fmt.Sprintf("din/%s", tag), opts)
+				opts := types.ImageRemoveOptions{Force: true}
+				dockerClient.ImageRemove(context.Background(), fmt.Sprintf("din/%s", tag), opts)
 			}
 		} else {
 			log.Fatalf("Language %s not found", tag)
